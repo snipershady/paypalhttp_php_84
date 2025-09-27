@@ -2,6 +2,7 @@
 
 namespace PayPalHttp\Serializer;
 
+use Override;
 use PayPalHttp\HttpRequest;
 use PayPalHttp\Serializer;
 
@@ -11,16 +12,15 @@ use PayPalHttp\Serializer;
  *
  * Serializer for Text content types.
  */
-class Text implements Serializer
-{
+class Text implements Serializer {
 
-    public function contentType()
-    {
+    #[Override]
+    public function contentType(): string {
         return "/^text\\/.*/";
     }
 
-    public function encode(HttpRequest $request)
-    {
+    #[Override]
+    public function encode(HttpRequest $request) {
         $body = $request->body;
         if (is_string($body)) {
             return $body;
@@ -31,8 +31,7 @@ class Text implements Serializer
         return implode(" ", $body);
     }
 
-    public function decode($data)
-    {
+    public function decode($data) {
         return $data;
     }
 }

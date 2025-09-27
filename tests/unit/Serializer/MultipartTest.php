@@ -2,20 +2,19 @@
 
 namespace Test\Unit;
 
+use Exception;
 use PayPalHttp\HttpRequest;
-use PayPalHttp\Serializer\Multipart;
 use PayPalHttp\Serializer\FormPart;
+use PayPalHttp\Serializer\Multipart;
 use PHPUnit\Framework\TestCase;
 
-class MultipartTest extends TestCase
-{
+class MultipartTest extends TestCase {
 
     /**
-     * @expectedException \Exception
+     * @expectedException Exception
      * @expectedExceptionMessage HttpRequest body must be an associative array when Content-Type is:
      */
-    public function testMultipartThrowsWhenRequestBodyNotArray()
-    {
+    public function testMultipartThrowsWhenRequestBodyNotArray(): void {
         $multipart = new Multipart();
 
         $request = new HttpRequest("/", "POST");
@@ -26,11 +25,10 @@ class MultipartTest extends TestCase
     }
 
     /**
-     * @expectedException \Exception
+     * @expectedException Exception
      * @expectedExceptionMessage HttpRequest body must be an associative array when Content-Type is:
      */
-    public function testMultipartThrowsWhenRequestBodyNotAssociativeArray()
-    {
+    public function testMultipartThrowsWhenRequestBodyNotAssociativeArray(): void {
         $multipart = new Multipart();
 
         $body = [];
@@ -44,8 +42,7 @@ class MultipartTest extends TestCase
         $multipart->encode($request);
     }
 
-    public function testMultipartAddsContentTypeHeaderForPart()
-    {
+    public function testMultipartAddsContentTypeHeaderForPart(): void {
         $multipart = new Multipart();
 
         $body = [];
@@ -60,8 +57,7 @@ class MultipartTest extends TestCase
         $this->assertContains("Content-Disposition: form-data; name=\"key1\"\r\n\r\nvalue1\r\n", $encodedBody);
     }
 
-    public function testMultipartMultipleKeys()
-    {
+    public function testMultipartMultipleKeys(): void {
         $multipart = new Multipart();
 
         $body = [];
@@ -78,12 +74,11 @@ class MultipartTest extends TestCase
         $this->assertContains("Content-Disposition: form-data; name=\"key2\"\r\n\r\nvalue2\r\n", $encodedBody);
     }
 
-    public function testMultipartJSONPart()
-    {
+    public function testMultipartJSONPart(): void {
         $multipart = new Multipart();
 
         $body = [];
-        $formPart = new FormPart([ "json_key" => "json_value"], [ "Content-Type" => "application/json"]);
+        $formPart = new FormPart(["json_key" => "json_value"], ["Content-Type" => "application/json"]);
         $body["key1"] = $formPart;
 
         $request = new HttpRequest("/", "POST");
@@ -95,8 +90,7 @@ class MultipartTest extends TestCase
         $this->assertContains("Content-Disposition: form-data; name=\"key1\"; filename=\"key1.json\"\r\nContent-Type: application/json\r\n\r\n{\"json_key\":\"json_value\"}\r\n", $encodedBody);
     }
 
-    public function testMultipartFile()
-    {
+    public function testMultipartFile(): void {
         $multipart = new Multipart();
 
         $body = [];

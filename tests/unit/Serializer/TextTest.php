@@ -6,10 +6,9 @@ use PayPalHttp\HttpRequest;
 use PayPalHttp\Serializer\Text;
 use PHPUnit\Framework\TestCase;
 
-class TextTest extends TestCase
-{
-    public function testSerialize_returnsStringIfBodyString()
-    {
+class TextTest extends TestCase {
+
+    public function testSerialize_returnsStringIfBodyString(): void {
         $httpRequest = new HttpRequest("/path", "post");
         $httpRequest->body = "some string";
 
@@ -18,8 +17,7 @@ class TextTest extends TestCase
         $this->assertEquals("some string", $result);
     }
 
-    public function testSerialize_returnsStringIfBodyJSONString()
-    {
+    public function testSerialize_returnsStringIfBodyJSONString(): void {
         $httpRequest = new HttpRequest("/path", "post");
         $httpRequest->body = "{ \"key\": \"value\" }";
 
@@ -28,8 +26,7 @@ class TextTest extends TestCase
         $this->assertEquals("{ \"key\": \"value\" }", $result);
     }
 
-    public function testSerialize_returnsJsonArrayStringIfArray()
-    {
+    public function testSerialize_returnsJsonArrayStringIfArray(): void {
         $httpRequest = new HttpRequest("/path", "post");
         $httpRequest->body[] = "some string";
         $httpRequest->body[] = "another string";
@@ -39,8 +36,7 @@ class TextTest extends TestCase
         $this->assertEquals("[\"some string\",\"another string\"]", $result);
     }
 
-    public function testSerialize_returnsJsonObjectStringIfArray()
-    {
+    public function testSerialize_returnsJsonObjectStringIfArray(): void {
         $httpRequest = new HttpRequest("/path", "post");
         $httpRequest->body['key'] = [
             'another_key' => 'another value',
@@ -52,8 +48,7 @@ class TextTest extends TestCase
         $this->assertEquals("{\"key\":{\"another_key\":\"another value\",\"something\":\"else\"}}", $result);
     }
 
-    public function testDeserialize_returnsStringIfClassString()
-    {
+    public function testDeserialize_returnsStringIfClassString(): void {
         $data = "something \t really \n fishy.";
         $textSerializer = new Text();
         $this->assertEquals($data, $textSerializer->decode($data));

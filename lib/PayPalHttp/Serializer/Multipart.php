@@ -2,10 +2,11 @@
 
 namespace PayPalHttp\Serializer;
 
+use Exception;
 use finfo;
+use PayPalHttp\Encoder;
 use PayPalHttp\HttpRequest;
 use PayPalHttp\Serializer;
-use PayPalHttp\Encoder;
 use PayPalHttp\Serializer\FormPart;
 
 /**
@@ -14,20 +15,19 @@ use PayPalHttp\Serializer\FormPart;
  *
  * Serializer for multipart.
  */
-class Multipart implements Serializer
-{
+class Multipart implements Serializer {
+
     const LINEFEED = "\r\n";
 
-    public function contentType()
-    {
+    #[\Override]
+    public function contentType(): string {
         return "/^multipart\/.*$/";
     }
 
-    public function encode(HttpRequest $request)
-    {
-        if (!is_array($request->body) || !$this->isAssociative($request->body))
-        {
-            throw new \Exception("HttpRequest body must be an associative array when Content-Type is: " . $request->headers["content-type"]);
+    #[\Override]
+    public function encode(HttpRequest $request): string {
+        if (!is_array($request->body) || !$this->isAssociative($request->body)) {
+            throw new Exception("HttpRequest body must be an associative array when Content-Type is: " . $request->headers["content-type"]);
         }
         $boundary = "---------------------" . md5(mt_rand() . microtime());
         $contentTypeHeader = $request->headers["content-type"];
@@ -43,18 +43,18 @@ class Multipart implements Serializer
         foreach ($request->body as $k => $v) {
             $k = str_replace($disallow, "_", $k);
             if (is_resource($v)) {
-                $file_params[] = $this->prepareFilePart($k, $v, $boundary);
-            } else if ($v instanceof FormPart) {
-                $value_params[] = $this->prepareFormPart($k, $v, $boundary);
+                $file_params[] = $this->prepareFilePart($k, $v);
+            } elseif ($v instanceof FormPart) {
+                $value_params[] = $this->prepareFormPart($k, $v);
             } else {
-                $value_params[] = $this->prepareFormField($k, $v, $boundary);
+                $value_params[] = $this->prepareFormField($k, $v);
             }
         }
 
         $body = array_merge($value_params, $file_params);
 
         // add boundary for each parameters
-        array_walk($body, function (&$part) use ($boundary) {
+        array_walk($body, function (&$part) use ($boundary): void {
             $part = "--{$boundary}" . self::LINEFEED . "{$part}";
         });
 
@@ -65,18 +65,16 @@ class Multipart implements Serializer
         return implode(self::LINEFEED, $body);
     }
 
-    public function decode($data)
-    {
-        throw new \Exception("Multipart does not support deserialization");
+    #[\Override]
+    public function decode($data): never {
+        throw new Exception("Multipart does not support deserialization");
     }
 
-    private function isAssociative(array $array)
-    {
+    private function isAssociative(array $array): bool {
         return array_values($array) !== $array;
     }
 
-    private function prepareFormField($partName, $value, $boundary)
-    {
+    private function prepareFormField(array|string $partName, $value): string {
         return implode(self::LINEFEED, [
             "Content-Disposition: form-data; name=\"{$partName}\"",
             "",
@@ -84,8 +82,7 @@ class Multipart implements Serializer
         ]);
     }
 
-    private function prepareFilePart($partName, $file, $boundary)
-    {
+    private function prepareFilePart(array|string $partName, $file): string {
         $fileInfo = new finfo(FILEINFO_MIME_TYPE);
         $filePath = stream_get_meta_data($file)['uri'];
         $data = file_get_contents($filePath);
@@ -103,8 +100,7 @@ class Multipart implements Serializer
         ]);
     }
 
-    private function prepareFormPart($partName, $formPart, $boundary)
-    {
+    private function prepareFormPart(array|string $partName, FormPart $formPart): string {
         $contentDisposition = "Content-Disposition: form-data; name=\"{$partName}\"";
 
         $partHeaders = $formPart->getHeaders();

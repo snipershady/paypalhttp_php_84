@@ -2,19 +2,19 @@
 
 namespace Test\Unit;
 
+use Exception;
 use PayPalHttp\Encoder;
 use PayPalHttp\HttpRequest;
-use PayPalHttp\Serializer;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
-class EncoderTest extends TestCase
-{
+class EncoderTest extends TestCase {
+
     /**
-     * @expectedException \Exception
+     * @expectedException Exception
      * @expectedExceptionMessage HttpRequest does not have Content-Type header set
      */
-    public function testEncode_throwsExceptionIfContentTypeNotPresent()
-    {
+    public function testEncode_throwsExceptionIfContentTypeNotPresent(): void {
         $encoder = new Encoder();
         $httpRequest = new HttpRequest("/path", "post");
         $httpRequest->body = "some string";
@@ -23,11 +23,10 @@ class EncoderTest extends TestCase
     }
 
     /**
-     * @expectedException \Exception
+     * @expectedException Exception
      * @expectedExceptionMessage Unable to serialize request with Content-Type: non-existent/type. Supported encodings are
      */
-    public function testEncode_throwsExceptionIfNoSerializerForGivenContentType()
-    {
+    public function testEncode_throwsExceptionIfNoSerializerForGivenContentType(): void {
         $encoder = new Encoder();
         $httpRequest = new HttpRequest("/path", "post");
         $httpRequest->headers['content-type'] = "non-existent/type";
@@ -37,22 +36,20 @@ class EncoderTest extends TestCase
     }
 
     /**
-     * @expectedException \Exception
+     * @expectedException Exception
      * @expectedExceptionMessage Body must be either string or array
      */
-    public function testEncode_throwsExceptionForNonStringOrArrayBody()
-    {
+    public function testEncode_throwsExceptionForNonStringOrArrayBody(): void {
         $encoder = new Encoder();
         $httpRequest = new HttpRequest("/path", "post");
 
         $httpRequest->headers['content-type'] = "application/json";
-        $httpRequest->body = new \stdClass();
+        $httpRequest->body = new stdClass();
 
         $encoder->serializeRequest($httpRequest);
     }
 
-    public function testEncode_serializesWithCorrectSerializer()
-    {
+    public function testEncode_serializesWithCorrectSerializer(): void {
         $encoder = new Encoder();
         $httpRequest = new HttpRequest("/path", "post");
         $httpRequest->headers['content-type'] = "application/json";
@@ -69,8 +66,7 @@ class EncoderTest extends TestCase
         $this->assertEquals('{"key_one":"value_one","key_two":["one","two"]}', $result);
     }
 
-    public function testEncode_gzipsDataWhenHeaderPresent()
-    {
+    public function testEncode_gzipsDataWhenHeaderPresent(): void {
         $encoder = new Encoder();
         $httpRequest = new HttpRequest("/path", "post");
 
@@ -86,11 +82,10 @@ class EncoderTest extends TestCase
     }
 
     /**
-     * @expectedException \Exception
+     * @expectedException Exception
      * @expectedExceptionMessage HTTP response does not have Content-Type header set
      */
-    public function testDecode_throwsWhenContentTypeNotPresent()
-    {
+    public function testDecode_throwsWhenContentTypeNotPresent(): void {
         $encoder = new Encoder();
         $headers = [];
 
@@ -98,11 +93,10 @@ class EncoderTest extends TestCase
     }
 
     /**
-     * @expectedException \Exception
+     * @expectedException Exception
      * @expectedExceptionMessage Unable to deserialize response with Content-Type: application/unstructured. Supported encodings are:
      */
-    public function testDecode_throwsWhenNoSerializerAvailableForContentType()
-    {
+    public function testDecode_throwsWhenNoSerializerAvailableForContentType(): void {
         $encoder = new Encoder();
         $headers = [
             "content-type" => "application/unstructured"
@@ -111,8 +105,7 @@ class EncoderTest extends TestCase
         $encoder->deserializeResponse('data', $headers);
     }
 
-    public function testDecode_deserializesResponseWithCorrectSerializer()
-    {
+    public function testDecode_deserializesResponseWithCorrectSerializer(): void {
         $encoder = new Encoder();
         $responseBody = '{"key_one":"value_one","key_two":["one","two"]}';
         $headers = [
@@ -125,8 +118,7 @@ class EncoderTest extends TestCase
         $this->assertEquals(["one", "two"], $result->key_two);
     }
 
-    public function testDecode_deserializesResponseWithContentEncoding()
-    {
+    public function testDecode_deserializesResponseWithContentEncoding(): void {
         $encoder = new Encoder();
         $responseBody = '{"key_one":"value_one","key_two":["one","two"]}';
         $headers = [
@@ -139,8 +131,7 @@ class EncoderTest extends TestCase
         $this->assertEquals(["one", "two"], $result->key_two);
     }
 
-    public function testDecode_deserializesResponseWithContentEncodingCaseInsensitive()
-    {
+    public function testDecode_deserializesResponseWithContentEncodingCaseInsensitive(): void {
         $encoder = new Encoder();
         $responseBody = '{"key_one":"value_one","key_two":["one","two"]}';
         $headers = [
@@ -153,8 +144,7 @@ class EncoderTest extends TestCase
         $this->assertEquals(["one", "two"], $result->key_two);
     }
 
-    public function testDecode_ungzipsDataWhenHeaderPresent()
-    {
+    public function testDecode_ungzipsDataWhenHeaderPresent(): void {
         $encoder = new Encoder();
         $responseBody = '{"key_one":"value_one"}';
         $headers = [
@@ -163,7 +153,7 @@ class EncoderTest extends TestCase
         ];
 
         $decoded = $encoder->deserializeResponse(gzencode($responseBody), $headers);
-        $expected = new \stdClass();
+        $expected = new stdClass();
 
         $expected->key_one = "value_one";
 

@@ -10,8 +10,8 @@ namespace PayPalHttp;
  *
  * @see HttpClient
  */
-interface Injector
-{
+interface Injector {
+
     /**
      * @param HttpRequest $httpRequest
      */

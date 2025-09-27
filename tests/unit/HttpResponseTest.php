@@ -5,10 +5,9 @@ namespace Test\Unit;
 use PayPalHttp\HttpResponse;
 use PHPUnit\Framework\TestCase;
 
-class HttpResponseTest extends TestCase
-{
-    public function testHttpResponse_construct()
-    {
+class HttpResponseTest extends TestCase {
+
+    public function testHttpResponse_construct(): void {
         $response = new HttpResponse(200, '{"myJSON"=> "isTheBestJSON"}', ["Content-Type" => "application/json"]);
 
         $this->assertEquals(200, $response->statusCode);

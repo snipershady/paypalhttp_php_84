@@ -2,6 +2,7 @@
 
 namespace PayPalHttp;
 
+use Exception;
 use PayPalHttp\Serializer\Form;
 use PayPalHttp\Serializer\Json;
 use PayPalHttp\Serializer\Multipart;
@@ -13,26 +14,22 @@ use PayPalHttp\Serializer\Text;
  *
  * Encoding class for serializing and deserializing request/response.
  */
-class Encoder
-{
-    private $serializers = [];
+class Encoder {
 
-    function __construct()
-    {
+    private array $serializers = [];
+
+    function __construct() {
         $this->serializers[] = new Json();
         $this->serializers[] = new Text();
         $this->serializers[] = new Multipart();
         $this->serializers[] = new Form();
     }
 
-
-
-    public function serializeRequest(HttpRequest $request)
-    {
+    public function serializeRequest(HttpRequest $request) {
         if (!array_key_exists('content-type', $request->headers)) {
             $message = "HttpRequest does not have Content-Type header set";
             echo $message;
-            throw new \Exception($message);
+            throw new Exception($message);
         }
 
         $contentType = $request->headers['content-type'];
@@ -42,13 +39,13 @@ class Encoder
         if (is_null($serializer)) {
             $message = sprintf("Unable to serialize request with Content-Type: %s. Supported encodings are: %s", $contentType, implode(", ", $this->supportedEncodings()));
             echo $message;
-            throw new \Exception($message);
+            throw new Exception($message);
         }
 
-        if (!(is_string($request->body) || is_array($request->body))) {
+        if (!is_string($request->body) && !is_array($request->body)) {
             $message = "Body must be either string or array";
             echo $message;
-            throw new \Exception($message);
+            throw new Exception($message);
         }
 
         $serialized = $serializer->encode($request);
@@ -59,23 +56,21 @@ class Encoder
         return $serialized;
     }
 
-
-    public function deserializeResponse($responseBody, $headers)
-    {
+    public function deserializeResponse($responseBody, array $headers) {
 
         if (!array_key_exists('content-type', $headers)) {
             $message = "HTTP response does not have Content-Type header set";
             echo $message;
-            throw new \Exception($message);
+            throw new Exception($message);
         }
 
         $contentType = $headers['content-type'];
-        $contentType = strtolower($contentType);
+        $contentType = strtolower((string) $contentType);
         /** @var Serializer $serializer */
         $serializer = $this->serializer($contentType);
 
         if (is_null($serializer)) {
-            throw new \Exception(sprintf("Unable to deserialize response with Content-Type: %s. Supported encodings are: %s", $contentType, implode(", ", $this->supportedEncodings())));
+            throw new Exception(sprintf("Unable to deserialize response with Content-Type: %s. Supported encodings are: %s", $contentType, implode(", ", $this->supportedEncodings())));
         }
 
         if (array_key_exists("content-encoding", $headers) && $headers["content-encoding"] === "gzip") {
@@ -85,26 +80,27 @@ class Encoder
         return $serializer->decode($responseBody);
     }
 
-    private function serializer($contentType)
-    {
+    private function serializer($contentType) {
         /** @var Serializer $serializer */
         foreach ($this->serializers as $serializer) {
             try {
-                if (preg_match($serializer->contentType(), $contentType) == 1) {
+                if (preg_match($serializer->contentType(), (string) $contentType) == 1) {
                     return $serializer;
                 }
-            } catch (\Exception $ex) {
-                $message = sprintf("Error while checking content type of %s: %s", get_class($serializer), $ex->getMessage());
+            } catch (Exception $ex) {
+                $message = sprintf("Error while checking content type of %s: %s", $serializer::class, $ex->getMessage());
                 echo $message;
-                throw new \Exception($message, $ex->getCode(), $ex);
+                throw new Exception($message, $ex->getCode(), $ex);
             }
         }
 
         return NULL;
     }
 
-    private function supportedEncodings()
-    {
+    /**
+     * @return list
+     */
+    private function supportedEncodings(): array {
         $values = [];
         /** @var Serializer $serializer */
         foreach ($this->serializers as $serializer) {

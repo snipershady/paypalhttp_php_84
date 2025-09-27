@@ -8,27 +8,14 @@ namespace PayPalHttp;
  *
  * Object that holds your response details
  */
-class HttpResponse
-{
-    /**
-     * @var int
-     */
-    public $statusCode;
+class HttpResponse {
 
     /**
-     * @var array | string | object
+     * @param int $statusCode
+     * @param mixed[]|string|object $body
+     * @param mixed[] $headers
      */
-    public $result;
-
-    /**
-     * @var array
-     */
-    public $headers;
-
-    public function __construct($statusCode, $body, $headers)
-    {
-        $this->statusCode = $statusCode;
-        $this->headers = $headers;
-        $this->result = $body;
+    public function __construct(public $statusCode, public $result, public $headers) {
+        
     }
 }

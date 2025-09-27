@@ -8,8 +8,13 @@ namespace PayPalHttp;
  *
  * Client used to make HTTP requests.
  */
-class HttpClient
-{
+class HttpClient {
+
+    /**
+     * @var Curl
+     */
+    public $curl;
+
     /**
      * @var Environment
      */
@@ -31,11 +36,9 @@ class HttpClient
      * @param Environment $environment
      * @see Environment
      */
-    function __construct(Environment $environment)
-    {
+    function __construct(Environment $environment) {
         $this->environment = $environment;
         $this->encoder = new Encoder();
-        $this->curlCls = Curl::class;
     }
 
     /**
@@ -44,8 +47,7 @@ class HttpClient
      *
      * @param Injector $inj
      */
-    public function addInjector(Injector $inj)
-    {
+    public function addInjector(Injector $inj): void {
         $this->injectors[] = $inj;
     }
 
@@ -58,8 +60,7 @@ class HttpClient
      * @throws HttpException
      * @throws IOException
      */
-    public function execute(HttpRequest $httpRequest)
-    {
+    public function execute(HttpRequest $httpRequest) {
         $requestCpy = clone $httpRequest;
         $curl = new Curl();
 
@@ -78,7 +79,7 @@ class HttpClient
             $rawHeaders = $requestCpy->headers;
             $requestCpy->headers = $formattedHeaders;
             $body = $this->encoder->serializeRequest($requestCpy);
-            $requestCpy->headers = $this->mapHeaders($rawHeaders,$requestCpy->headers);
+            $requestCpy->headers = $this->mapHeaders($rawHeaders, $requestCpy->headers);
         }
 
         $curl->setOpt(CURLOPT_URL, $url);
@@ -91,7 +92,7 @@ class HttpClient
             $curl->setOpt(CURLOPT_POSTFIELDS, $body);
         }
 
-        if (strpos($this->environment->baseUrl(), "https://") === 0) {
+        if (str_starts_with($this->environment->baseUrl(), "https://")) {
             $curl->setOpt(CURLOPT_SSL_VERIFYPEER, true);
             $curl->setOpt(CURLOPT_SSL_VERIFYHOST, 2);
         }
@@ -112,10 +113,10 @@ class HttpClient
      * @param $headers
      * @return array
      */
-    public function prepareHeaders($headers){
+    public function prepareHeaders($headers): array {
         $preparedHeaders = array_change_key_case($headers);
         if (array_key_exists("content-type", $preparedHeaders)) {
-            $preparedHeaders["content-type"] = strtolower($preparedHeaders["content-type"]);
+            $preparedHeaders["content-type"] = strtolower((string) $preparedHeaders["content-type"]);
         }
         return $preparedHeaders;
     }
@@ -127,11 +128,11 @@ class HttpClient
      * @param $formattedHeaders
      * @return array
      */
-    public function mapHeaders($rawHeaders, $formattedHeaders){
+    public function mapHeaders(array $rawHeaders, array $formattedHeaders): array {
         $rawHeadersKey = array_keys($rawHeaders);
         foreach ($rawHeadersKey as $array_key) {
-            if(array_key_exists(strtolower($array_key), $formattedHeaders)){
-                $rawHeaders[$array_key] = $formattedHeaders[strtolower($array_key)];
+            if (array_key_exists(strtolower((string) $array_key), $formattedHeaders)) {
+                $rawHeaders[$array_key] = $formattedHeaders[strtolower((string) $array_key)];
             }
         }
         return $rawHeaders;
@@ -142,8 +143,7 @@ class HttpClient
      *
      * @return string
      */
-    public function userAgent()
-    {
+    public function userAgent(): string {
         return "PayPalHttp-PHP HTTP/1.1";
     }
 
@@ -151,49 +151,44 @@ class HttpClient
      * Return the filepath to your custom CA Cert if needed.
      * @return string
      */
-    protected function getCACertFilePath()
-    {
+    protected function getCACertFilePath(): null {
         return null;
     }
 
-    protected function setCurl(Curl $curl)
-    {
+    protected function setCurl(Curl $curl) {
         $this->curl = $curl;
     }
 
-    protected function setEncoder(Encoder $encoder)
-    {
+    protected function setEncoder(Encoder $encoder) {
         $this->encoder = $encoder;
     }
 
-    private function serializeHeaders($headers)
-    {
+    /**
+     * @return list<\non-falsy-string>
+     */
+    private function serializeHeaders(array $headers): array {
         $headerArray = [];
-        if ($headers) {
-            foreach ($headers as $key => $val) {
-                $headerArray[] = $key . ": " . $val;
-            }
+        foreach ($headers as $key => $val) {
+            $headerArray[] = $key . ": " . $val;
         }
 
         return $headerArray;
     }
 
-    private function parseResponse($curl)
-    {
+    private function parseResponse(Curl $curl): HttpResponse {
         $headers = [];
         $curl->setOpt(CURLOPT_HEADERFUNCTION,
-            function($curl, $header) use (&$headers)
-            {
-                $len = strlen($header);
+                function ($curl, $header) use (&$headers): int {
+                    $len = strlen($header);
 
-                $k = "";
-                $v = "";
+                    $k = "";
+                    $v = "";
 
-                $this->deserializeHeader($header, $k, $v);
-                $headers[$k] = $v;
+                    $this->deserializeHeader($header, $k, $v);
+                    $headers[$k] = $v;
 
-                return $len;
-            });
+                    return $len;
+                });
 
         $responseData = $curl->exec();
         $statusCode = $curl->getInfo(CURLINFO_HTTP_CODE);
@@ -214,25 +209,25 @@ class HttpClient
             }
 
             return new HttpResponse(
-                $errorCode === 0 ? $statusCode : $errorCode,
-                $responseBody,
-                $headers
+                    $errorCode === 0 ? $statusCode : $errorCode,
+                    $responseBody,
+                    $headers
             );
         } else {
             throw new HttpException($body, $statusCode, $headers);
         }
     }
 
-    private function deserializeHeader($header, &$key, &$value)
-    {
-        if (strlen($header) > 0) {
-            if (empty($header) || strpos($header, ':') === false) {
+    private function deserializeHeader($header, string &$key, string &$value): null {
+        if (strlen((string) $header) > 0) {
+            if (empty($header) || !str_contains((string) $header, ':')) {
                 return NULL;
             }
 
-            list($k, $v) = explode(":", $header);
+            [$k, $v] = explode(":", (string) $header);
             $key = trim($k);
             $value = trim($v);
         }
+        return null;
     }
 }

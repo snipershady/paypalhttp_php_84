@@ -3,14 +3,12 @@
 namespace Test\Unit;
 
 use PayPalHttp\HttpRequest;
-use PayPalHttp\Serializable;
 use PayPalHttp\Serializer\Json;
 use PHPUnit\Framework\TestCase;
 
-class JsonTest extends TestCase
-{
-    public function testSerialize_returnsStringIfBodyString()
-    {
+class JsonTest extends TestCase {
+
+    public function testSerialize_returnsStringIfBodyString(): void {
         $httpRequest = new HttpRequest("/path", "post");
         $httpRequest->body = "some string";
 
@@ -19,8 +17,7 @@ class JsonTest extends TestCase
         $this->assertEquals("some string", $result);
     }
 
-    public function testSerialize_returnsStringIfBodyJSONString()
-    {
+    public function testSerialize_returnsStringIfBodyJSONString(): void {
         $httpRequest = new HttpRequest("/path", "post");
         $httpRequest->body = "{ \"key\": \"value\" }";
 
@@ -29,8 +26,7 @@ class JsonTest extends TestCase
         $this->assertEquals("{ \"key\": \"value\" }", $result);
     }
 
-    public function testSerialize_returnsJsonArrayIfArray()
-    {
+    public function testSerialize_returnsJsonArrayIfArray(): void {
         $httpRequest = new HttpRequest("/path", "post");
         $httpRequest->body[] = "some string";
         $httpRequest->body[] = "another string";
@@ -40,8 +36,7 @@ class JsonTest extends TestCase
         $this->assertEquals("[\"some string\",\"another string\"]", $result);
     }
 
-    public function testSerialize_returnsJsonObjectStringIfArray()
-    {
+    public function testSerialize_returnsJsonObjectStringIfArray(): void {
         $httpRequest = new HttpRequest("/path", "post");
         $httpRequest->body['key'] = [
             'another_key' => 'another value',
@@ -53,4 +48,3 @@ class JsonTest extends TestCase
         $this->assertEquals("{\"key\":{\"another_key\":\"another value\",\"something\":\"else\"}}", $result);
     }
 }
-

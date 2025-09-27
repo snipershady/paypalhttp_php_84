@@ -2,18 +2,18 @@
 
 namespace Test\Unit;
 
+use Exception;
 use PayPalHttp\HttpRequest;
 use PayPalHttp\Serializer\Form;
 use PHPUnit\Framework\TestCase;
 
-class FormTest extends TestCase
-{
+class FormTest extends TestCase {
+
     /**
-     * @expectedException \Exception
+     * @expectedException Exception
      * @expectedExceptionMessage HttpRequest body must be an associative array when Content-Type is:
      */
-    public function testFormThrowsWhenRequestBodyNotArray()
-    {
+    public function testFormThrowsWhenRequestBodyNotArray(): void {
         $multipart = new Form();
 
         $request = new HttpRequest("/", "POST");
@@ -24,11 +24,10 @@ class FormTest extends TestCase
     }
 
     /**
-     * @expectedException \Exception
+     * @expectedException Exception
      * @expectedExceptionMessage HttpRequest body must be an associative array when Content-Type is:
      */
-    public function testFormThrowsWhenRequestBodyNotAssociativeArray()
-    {
+    public function testFormThrowsWhenRequestBodyNotAssociativeArray(): void {
         $multipart = new Form();
 
         $body = [];

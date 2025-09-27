@@ -2,7 +2,6 @@
 
 namespace Test\Unit;
 
-use PayPalHttp\Curl;
 use PayPalHttp\Environment;
 use PayPalHttp\HttpClient;
 use PayPalHttp\HttpException;
@@ -11,31 +10,27 @@ use PayPalHttp\Injector;
 use PHPUnit\Framework\TestCase;
 use WireMock\Client\WireMock;
 
-class HttpClientTest extends TestCase
-{
-    private $wireMock;
-    private $environment;
+class HttpClientTest extends TestCase {
 
-    public function setUp()
-    {
+    private $wireMock;
+    private DevelopmentEnvironment $environment;
+
+    public function setUp(): void {
         $this->wireMock = WireMock::create();
         $this->environment = new DevelopmentEnvironment("http://localhost:8080");
 
         $this->assertTrue($this->wireMock->isAlive());
     }
 
-    public static function setUpBeforeClass()
-    {
+    public static function setUpBeforeClass(): void {
         exec('java -jar ./tests/wiremock-standalone.jar --port 8080 --https-port 8443 > /dev/null 2>&1 &');
     }
 
-    public static function tearDownAfterClass()
-    {
+    public static function tearDownAfterClass(): void {
         exec('ps aux | grep wiremock | grep -v grep | awk \'{print $2}\' | xargs kill -9');
     }
 
-    public function testAddInjector_addsInjectorToInjectorList()
-    {
+    public function testAddInjector_addsInjectorToInjectorList(): void {
         $client = new HttpClient($this->environment);
 
         $inj = new BasicInjector();
@@ -44,8 +39,7 @@ class HttpClientTest extends TestCase
         $this->assertContains($inj, $client->injectors);
     }
 
-    public function testAddsMultipleInjectors_addsMultipleInjectorsToInjectorList()
-    {
+    public function testAddsMultipleInjectors_addsMultipleInjectorsToInjectorList(): void {
         $client = new HttpClient($this->environment);
 
         $inj1 = new BasicInjector();
@@ -57,11 +51,10 @@ class HttpClientTest extends TestCase
         $this->assertArraySubset([$inj1, $inj2], $client->injectors);
     }
 
-    public function testExecute_usesInjectorsToModifyRequest()
-    {
+    public function testExecute_usesInjectorsToModifyRequest(): void {
         $this->wireMock->stubFor(WireMock::get(WireMock::urlEqualTo("/some-other-path"))
-            ->willReturn(WireMock::aResponse()
-            ->withStatus(200)));
+                        ->willReturn(WireMock::aResponse()
+                                ->withStatus(200)));
 
         $client = new HttpClient($this->environment);
         $injector = new BasicInjector();
@@ -73,11 +66,10 @@ class HttpClientTest extends TestCase
         $this->wireMock->verify(WireMock::getRequestedFor(WireMock::urlEqualTo("/some-other-path")));
     }
 
-    public function testExecute_formsRequestProperly()
-    {
+    public function testExecute_formsRequestProperly(): void {
         $this->wireMock->stubFor(WireMock::post(WireMock::urlEqualTo("/path"))
-            ->willReturn(WireMock::aResponse()
-            ->withStatus(200)));
+                        ->willReturn(WireMock::aResponse()
+                                ->withStatus(200)));
 
         $client = new HttpClient($this->environment);
 
@@ -88,15 +80,14 @@ class HttpClientTest extends TestCase
         $client->execute($req);
 
         $this->wireMock->verify(WireMock::postRequestedFor(WireMock::urlEqualTo("/path"))
-            ->withHeader("Content-Type", WireMock::equalTo("text/plain"))
-            ->withRequestBody(WireMock::equalTo("some data")));
+                        ->withHeader("Content-Type", WireMock::equalTo("text/plain"))
+                        ->withRequestBody(WireMock::equalTo("some data")));
     }
 
-    public function testExecute_formsRequestProperlyCaseInsensitive()
-    {
+    public function testExecute_formsRequestProperlyCaseInsensitive(): void {
         $this->wireMock->stubFor(WireMock::post(WireMock::urlEqualTo("/path"))
-            ->willReturn(WireMock::aResponse()
-            ->withStatus(200)));
+                        ->willReturn(WireMock::aResponse()
+                                ->withStatus(200)));
 
         $client = new HttpClient($this->environment);
 
@@ -107,15 +98,14 @@ class HttpClientTest extends TestCase
         $client->execute($req);
 
         $this->wireMock->verify(WireMock::postRequestedFor(WireMock::urlEqualTo("/path"))
-            ->withHeader("Content-Type", WireMock::equalTo("text/plain"))
-            ->withRequestBody(WireMock::equalTo("some data")));
+                        ->withHeader("Content-Type", WireMock::equalTo("text/plain"))
+                        ->withRequestBody(WireMock::equalTo("some data")));
     }
 
-    public function testExecute_setsUserAgentIfNotSet()
-    {
+    public function testExecute_setsUserAgentIfNotSet(): void {
         $this->wireMock->stubFor(WireMock::post(WireMock::urlEqualTo("/path"))
-            ->willReturn(WireMock::aResponse()
-            ->withStatus(200)));
+                        ->willReturn(WireMock::aResponse()
+                                ->withStatus(200)));
 
         $client = new HttpClient($this->environment);
 
@@ -123,14 +113,13 @@ class HttpClientTest extends TestCase
         $client->execute($req);
 
         $this->wireMock->verify(WireMock::postRequestedFor(WireMock::urlEqualTo("/path"))
-            ->withHeader("User-Agent", WireMock::equalTo($client->userAgent())));
+                        ->withHeader("User-Agent", WireMock::equalTo($client->userAgent())));
     }
 
-    public function testExecute_doesNotSetUserAgentIfAlreadySet()
-    {
+    public function testExecute_doesNotSetUserAgentIfAlreadySet(): void {
         $this->wireMock->stubFor(WireMock::post(WireMock::urlEqualTo("/path"))
-            ->willReturn(WireMock::aResponse()
-            ->withStatus(200)));
+                        ->willReturn(WireMock::aResponse()
+                                ->withStatus(200)));
 
         $client = new HttpClient($this->environment);
 
@@ -139,14 +128,13 @@ class HttpClientTest extends TestCase
         $client->execute($req);
 
         $this->wireMock->verify(WireMock::postRequestedFor(WireMock::urlEqualTo("/path"))
-            ->withHeader("User-Agent", WireMock::equalTo("Example user-agent")));
+                        ->withHeader("User-Agent", WireMock::equalTo("Example user-agent")));
     }
 
-    public function testExecute_setsHeadersInRequest()
-    {
+    public function testExecute_setsHeadersInRequest(): void {
         $this->wireMock->stubFor(WireMock::post(WireMock::urlEqualTo("/path"))
-            ->willReturn(WireMock::aResponse()
-            ->withStatus(200)));
+                        ->willReturn(WireMock::aResponse()
+                                ->withStatus(200)));
 
         $client = new HttpClient($this->environment);
 
@@ -155,17 +143,16 @@ class HttpClientTest extends TestCase
         $client->execute($req);
 
         $this->wireMock->verify(WireMock::postRequestedFor(WireMock::urlEqualTo("/path"))
-            ->withHeader("Custom-Header", WireMock::equalTo("Custom value")));
+                        ->withHeader("Custom-Header", WireMock::equalTo("Custom value")));
     }
 
-    public function testExecute_parsesHeadersFromResponse()
-    {
+    public function testExecute_parsesHeadersFromResponse(): void {
         $this->wireMock->stubFor(WireMock::post(WireMock::urlEqualTo("/path"))
-            ->willReturn(WireMock::aResponse()
-            ->withHeader("Some-key", "Some value")
-            ->withHeader("Content-Type", "text/plain")
-            ->withBody("some plain text")
-            ->withStatus(200)));
+                        ->willReturn(WireMock::aResponse()
+                                ->withHeader("Some-key", "Some value")
+                                ->withHeader("Content-Type", "text/plain")
+                                ->withBody("some plain text")
+                                ->withStatus(200)));
 
         $client = new HttpClient($this->environment);
 
@@ -177,14 +164,13 @@ class HttpClientTest extends TestCase
         $this->assertEquals("some plain text", $response->result);
     }
 
-    public function testExecute_throwsForNon200LevelResponse()
-    {
+    public function testExecute_throwsForNon200LevelResponse(): void {
         $this->wireMock->stubFor(WireMock::post(WireMock::urlEqualTo("/path"))
-            ->willReturn(WireMock::aResponse()
-            ->withHeader("Debug-Id", "some debug id")
-            ->withHeader("Content-Type", "text/plain")
-            ->withBody("Response body")
-            ->withStatus(400)));
+                        ->willReturn(WireMock::aResponse()
+                                ->withHeader("Debug-Id", "some debug id")
+                                ->withHeader("Content-Type", "text/plain")
+                                ->withBody("Response body")
+                                ->withStatus(400)));
 
         $client = new HttpClient($this->environment);
 
@@ -200,17 +186,16 @@ class HttpClientTest extends TestCase
         }
     }
 
-    public function testParseResponse_parsesResponseWith100ContinueCorrectly()
-    {
+    public function testParseResponse_parsesResponseWith100ContinueCorrectly(): void {
         $this->wireMock->stubFor(WireMock::post(WireMock::urlEqualTo("/path"))
-            ->willReturn(WireMock::aResponse()
-            ->withStatus(100)));
+                        ->willReturn(WireMock::aResponse()
+                                ->withStatus(100)));
 
         $this->wireMock->stubFor(WireMock::post(WireMock::urlEqualTo("/path"))
-            ->willReturn(WireMock::aResponse()
-            ->withHeader("Content-Type", "text/plain")
-            ->withBody("Successfully dumped some data.\nAnother line of data\nLast one.")
-            ->withStatus(200)));
+                        ->willReturn(WireMock::aResponse()
+                                ->withHeader("Content-Type", "text/plain")
+                                ->withBody("Successfully dumped some data.\nAnother line of data\nLast one.")
+                                ->withStatus(200)));
 
         $client = new HttpClient($this->environment);
 
@@ -221,11 +206,10 @@ class HttpClientTest extends TestCase
         $this->assertEquals("Successfully dumped some data.\nAnother line of data\nLast one.", $res->result);
     }
 
-    public function testExecute_doesNotModifyOriginalRequest()
-    {
+    public function testExecute_doesNotModifyOriginalRequest(): void {
         $this->wireMock->stubFor(WireMock::get(WireMock::urlEqualTo("/path"))
-            ->willReturn(WireMock::aResponse()
-            ->withStatus(200)));
+                        ->willReturn(WireMock::aResponse()
+                                ->withStatus(200)));
 
         $client = new HttpClient($this->environment);
         $req = new HttpRequest("/path", "GET");
@@ -233,14 +217,13 @@ class HttpClientTest extends TestCase
         $client->execute($req);
 
         // HttpClient adds UserAgent header pre-flight
-        $this->assertEquals(0, sizeof($req->headers));
+        $this->assertEquals(0, count($req->headers));
     }
 
-    public function testExecute_usesUpdatedHTTPHeadersFromSerializer()
-    {
+    public function testExecute_usesUpdatedHTTPHeadersFromSerializer(): void {
         $this->wireMock->stubFor(WireMock::post(WireMock::urlEqualTo("/path"))
-            ->willReturn(WireMock::aResponse()
-            ->withStatus(200)));
+                        ->willReturn(WireMock::aResponse()
+                                ->withStatus(200)));
 
         $client = new HttpClient($this->environment);
 
@@ -257,33 +240,28 @@ class HttpClientTest extends TestCase
         $client->execute($req);
 
         $this->wireMock->verify(WireMock::postRequestedFor(WireMock::urlEqualTo("/path"))
-            ->withHeader("Content-Type", WireMock::containing("multipart/form-data; boundary=--"))
-            ->withRequestBody(WireMock::containing("Hello World!")));
+                        ->withHeader("Content-Type", WireMock::containing("multipart/form-data; boundary=--"))
+                        ->withRequestBody(WireMock::containing("Hello World!")));
     }
 }
 
-class BasicInjector implements Injector
-{
-    public function inject($httpRequest)
-    {
+class BasicInjector implements Injector {
+
+    public function inject($httpRequest): void {
         $httpRequest->path = "/some-other-path";
     }
 }
 
-class DevelopmentEnvironment implements Environment
-{
-    /**
-     * @var string
-     */
-    private $baseUrl;
+class DevelopmentEnvironment implements Environment {
 
-    public function __construct($baseUrl)
-    {
-        $this->baseUrl = $baseUrl;
+    /**
+     * @param string $baseUrl
+     */
+    public function __construct(private $baseUrl) {
+        
     }
 
-    public function baseUrl()
-    {
+    public function baseUrl() {
         return $this->baseUrl;
     }
 }

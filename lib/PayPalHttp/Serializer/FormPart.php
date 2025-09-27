@@ -2,24 +2,19 @@
 
 namespace PayPalHttp\Serializer;
 
-class FormPart
-{
-    private $value;
-    private $headers;
+class FormPart {
 
-    public function __construct($value, $headers)
-    {
-        $this->value = $value;
+    private readonly array $headers;
+
+    public function __construct(private $value, $headers) {
         $this->headers = array_merge([], $headers);
     }
 
-    public function getValue()
-    {
+    public function getValue() {
         return $this->value;
     }
 
-    public function getHeaders()
-    {
+    public function getHeaders(): array {
         return $this->headers;
     }
 }
