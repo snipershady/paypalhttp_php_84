@@ -9,11 +9,12 @@
         }
     ],
     "require": {
+        "php": ">=8.2",
         "ext-curl": "*"
     },
     "require-dev": {
-        "phpunit/phpunit": "^5.7",
-        "wiremock-php/wiremock-php": "1.43.2"
+        "phpunit/phpunit": "^12.1",
+        "wiremock-php/wiremock-php": "*"
     },
     "autoload": {
         "psr-4": {
