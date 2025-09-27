@@ -30,3 +30,5 @@ composer.lock
 .idea/modules.xml
 __files/*
 mappings/*
+/nbproject/private/
+/nbproject/
