@@ -1,7 +1,7 @@
 <?php
 // php vendor/bin/php-cs-fixer fix nome_file.php --config=.php-cs-fixer.dist.php
 $finder = (new PhpCsFixer\Finder())
-        ->in(__DIR__ . "/src")
+        ->in(__DIR__ . "/lib")
         ->exclude('var')
         ->exclude('vendor')
 ;
