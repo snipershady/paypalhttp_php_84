@@ -4,4 +4,6 @@ tests/ export-ignore
 .releasinator.rb export-ignore
 Gemfile export-ignore
 Gemfile.lock export-ignore
-
+.php-cs-fixer.dist.php export-ignore
+.php-cs-fixer.cache export-ignore
+rector.php export-ignore
