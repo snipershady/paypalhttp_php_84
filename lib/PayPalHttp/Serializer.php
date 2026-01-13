@@ -8,8 +8,8 @@ namespace PayPalHttp;
  *
  * Used to implement different serializers for different content types
  */
-interface Serializer {
-
+interface Serializer
+{
     /**
      * @return string Regex that matches the content type it supports.
      */

@@ -9,11 +9,12 @@ namespace PayPalHttp;
  * Curl wrapper used by HttpClient to make curl requests.
  * @see HttpClient
  */
-class Curl {
-
+class Curl
+{
     protected $curl;
 
-    public function __construct($curl = NULL) {
+    public function __construct($curl = null)
+    {
 
         if (empty($curl)) {
             $curl = curl_init();
@@ -21,29 +22,35 @@ class Curl {
         $this->curl = $curl;
     }
 
-    public function setOpt($option, $value): static {
+    public function setOpt($option, $value): static
+    {
         curl_setopt($this->curl, $option, $value);
         return $this;
     }
 
-    public function close(): static {
+    public function close(): static
+    {
         curl_close($this->curl);
         return $this;
     }
 
-    public function exec(): bool|string {
+    public function exec(): bool|string
+    {
         return curl_exec($this->curl);
     }
 
-    public function errNo(): int {
+    public function errNo(): int
+    {
         return curl_errno($this->curl);
     }
 
-    public function getInfo($option): array|false {
+    public function getInfo($option): array|false
+    {
         return curl_getinfo($this->curl, $option);
     }
 
-    public function error(): string {
+    public function error(): string
+    {
         return curl_error($this->curl);
     }
 }

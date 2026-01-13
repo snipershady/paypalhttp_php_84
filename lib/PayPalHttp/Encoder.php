@@ -14,18 +14,20 @@ use PayPalHttp\Serializer\Text;
  *
  * Encoding class for serializing and deserializing request/response.
  */
-class Encoder {
-
+class Encoder
+{
     private array $serializers = [];
 
-    function __construct() {
+    public function __construct()
+    {
         $this->serializers[] = new Json();
         $this->serializers[] = new Text();
         $this->serializers[] = new Multipart();
         $this->serializers[] = new Form();
     }
 
-    public function serializeRequest(HttpRequest $request) {
+    public function serializeRequest(HttpRequest $request)
+    {
         if (!array_key_exists('content-type', $request->headers)) {
             $message = "HttpRequest does not have Content-Type header set";
             echo $message;
@@ -56,7 +58,8 @@ class Encoder {
         return $serialized;
     }
 
-    public function deserializeResponse($responseBody, array $headers) {
+    public function deserializeResponse($responseBody, array $headers)
+    {
 
         if (!array_key_exists('content-type', $headers)) {
             $message = "HTTP response does not have Content-Type header set";
@@ -80,7 +83,8 @@ class Encoder {
         return $serializer->decode($responseBody);
     }
 
-    private function serializer($contentType) {
+    private function serializer($contentType)
+    {
         /** @var Serializer $serializer */
         foreach ($this->serializers as $serializer) {
             try {
@@ -94,13 +98,14 @@ class Encoder {
             }
         }
 
-        return NULL;
+        return null;
     }
 
     /**
      * @return list
      */
-    private function supportedEncodings(): array {
+    private function supportedEncodings(): array
+    {
         $values = [];
         /** @var Serializer $serializer */
         foreach ($this->serializers as $serializer) {

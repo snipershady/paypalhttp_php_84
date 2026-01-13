@@ -8,8 +8,8 @@ namespace PayPalHttp;
  *
  * Client used to make HTTP requests.
  */
-class HttpClient {
-
+class HttpClient
+{
     /**
      * @var Curl
      */
@@ -33,10 +33,10 @@ class HttpClient {
     /**
      * HttpClient constructor. Pass the environment you wish to make calls to.
      *
-     * @param Environment $environment
      * @see Environment
      */
-    function __construct(Environment $environment) {
+    public function __construct(Environment $environment)
+    {
         $this->environment = $environment;
         $this->encoder = new Encoder();
     }
@@ -44,10 +44,9 @@ class HttpClient {
     /**
      * Injectors are blocks that can be used for executing arbitrary pre-flight logic, such as modifying a request or logging data.
      * Executed in first-in first-out order.
-     *
-     * @param Injector $inj
      */
-    public function addInjector(Injector $inj): void {
+    public function addInjector(Injector $inj): void
+    {
         $this->injectors[] = $inj;
     }
 
@@ -60,7 +59,8 @@ class HttpClient {
      * @throws HttpException
      * @throws IOException
      */
-    public function execute(HttpRequest $httpRequest) {
+    public function execute(HttpRequest $httpRequest)
+    {
         $requestCpy = clone $httpRequest;
         $curl = new Curl();
 
@@ -111,9 +111,9 @@ class HttpClient {
      * Returns an array representing headers with their keys
      * to be lower case
      * @param $headers
-     * @return array
      */
-    public function prepareHeaders($headers): array {
+    public function prepareHeaders($headers): array
+    {
         $preparedHeaders = array_change_key_case($headers);
         if (array_key_exists("content-type", $preparedHeaders)) {
             $preparedHeaders["content-type"] = strtolower((string) $preparedHeaders["content-type"]);
@@ -126,9 +126,9 @@ class HttpClient {
      * original cases and updated values
      * @param $rawHeaders
      * @param $formattedHeaders
-     * @return array
      */
-    public function mapHeaders(array $rawHeaders, array $formattedHeaders): array {
+    public function mapHeaders(array $rawHeaders, array $formattedHeaders): array
+    {
         $rawHeadersKey = array_keys($rawHeaders);
         foreach ($rawHeadersKey as $array_key) {
             if (array_key_exists(strtolower((string) $array_key), $formattedHeaders)) {
@@ -140,10 +140,9 @@ class HttpClient {
 
     /**
      * Returns default user-agent
-     *
-     * @return string
      */
-    public function userAgent(): string {
+    public function userAgent(): string
+    {
         return "PayPalHttp-PHP HTTP/1.1";
     }
 
@@ -151,22 +150,26 @@ class HttpClient {
      * Return the filepath to your custom CA Cert if needed.
      * @return string
      */
-    protected function getCACertFilePath(): null {
+    protected function getCACertFilePath(): null
+    {
         return null;
     }
 
-    protected function setCurl(Curl $curl) {
+    protected function setCurl(Curl $curl)
+    {
         $this->curl = $curl;
     }
 
-    protected function setEncoder(Encoder $encoder) {
+    protected function setEncoder(Encoder $encoder)
+    {
         $this->encoder = $encoder;
     }
 
     /**
      * @return list<\non-falsy-string>
      */
-    private function serializeHeaders(array $headers): array {
+    private function serializeHeaders(array $headers): array
+    {
         $headerArray = [];
         foreach ($headers as $key => $val) {
             $headerArray[] = $key . ": " . $val;
@@ -175,20 +178,23 @@ class HttpClient {
         return $headerArray;
     }
 
-    private function parseResponse(Curl $curl): HttpResponse {
+    private function parseResponse(Curl $curl): HttpResponse
+    {
         $headers = [];
-        $curl->setOpt(CURLOPT_HEADERFUNCTION,
-                function ($curl, $header) use (&$headers): int {
-                    $len = strlen($header);
+        $curl->setOpt(
+            CURLOPT_HEADERFUNCTION,
+            function ($curl, $header) use (&$headers): int {
+                $len = strlen($header);
 
-                    $k = "";
-                    $v = "";
+                $k = "";
+                $v = "";
 
-                    $this->deserializeHeader($header, $k, $v);
-                    $headers[$k] = $v;
+                $this->deserializeHeader($header, $k, $v);
+                $headers[$k] = $v;
 
-                    return $len;
-                });
+                return $len;
+            }
+        );
 
         $responseData = $curl->exec();
         $statusCode = $curl->getInfo(CURLINFO_HTTP_CODE);
@@ -202,26 +208,27 @@ class HttpClient {
         $body = $responseData;
 
         if ($statusCode >= 200 && $statusCode < 300) {
-            $responseBody = NULL;
+            $responseBody = null;
 
             if (!empty($body)) {
                 $responseBody = $this->encoder->deserializeResponse($body, $this->prepareHeaders($headers));
             }
 
             return new HttpResponse(
-                    $errorCode === 0 ? $statusCode : $errorCode,
-                    $responseBody,
-                    $headers
+                $errorCode === 0 ? $statusCode : $errorCode,
+                $responseBody,
+                $headers
             );
         } else {
             throw new HttpException($body, $statusCode, $headers);
         }
     }
 
-    private function deserializeHeader($header, string &$key, string &$value): null {
-        if (strlen((string) $header) > 0) {
+    private function deserializeHeader($header, string &$key, string &$value): null
+    {
+        if ((string) $header !== '') {
             if (empty($header) || !str_contains((string) $header, ':')) {
-                return NULL;
+                return null;
             }
 
             [$k, $v] = explode(":", (string) $header);

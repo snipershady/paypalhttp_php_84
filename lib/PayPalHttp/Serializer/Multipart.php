@@ -15,17 +15,19 @@ use PayPalHttp\Serializer\FormPart;
  *
  * Serializer for multipart.
  */
-class Multipart implements Serializer {
-
-    const LINEFEED = "\r\n";
+class Multipart implements Serializer
+{
+    public const LINEFEED = "\r\n";
 
     #[\Override]
-    public function contentType(): string {
+    public function contentType(): string
+    {
         return "/^multipart\/.*$/";
     }
 
     #[\Override]
-    public function encode(HttpRequest $request): string {
+    public function encode(HttpRequest $request): string
+    {
         if (!is_array($request->body) || !$this->isAssociative($request->body)) {
             throw new Exception("HttpRequest body must be an associative array when Content-Type is: " . $request->headers["content-type"]);
         }
@@ -66,15 +68,18 @@ class Multipart implements Serializer {
     }
 
     #[\Override]
-    public function decode($data): never {
+    public function decode($data): never
+    {
         throw new Exception("Multipart does not support deserialization");
     }
 
-    private function isAssociative(array $array): bool {
+    private function isAssociative(array $array): bool
+    {
         return array_values($array) !== $array;
     }
 
-    private function prepareFormField(array|string $partName, $value): string {
+    private function prepareFormField(array|string $partName, $value): string
+    {
         return implode(self::LINEFEED, [
             "Content-Disposition: form-data; name=\"{$partName}\"",
             "",
@@ -82,7 +87,8 @@ class Multipart implements Serializer {
         ]);
     }
 
-    private function prepareFilePart(array|string $partName, $file): string {
+    private function prepareFilePart(array|string $partName, $file): string
+    {
         $fileInfo = new finfo(FILEINFO_MIME_TYPE);
         $filePath = stream_get_meta_data($file)['uri'];
         $data = file_get_contents($filePath);
@@ -100,7 +106,8 @@ class Multipart implements Serializer {
         ]);
     }
 
-    private function prepareFormPart(array|string $partName, FormPart $formPart): string {
+    private function prepareFormPart(array|string $partName, FormPart $formPart): string
+    {
         $contentDisposition = "Content-Disposition: form-data; name=\"{$partName}\"";
 
         $partHeaders = $formPart->getHeaders();

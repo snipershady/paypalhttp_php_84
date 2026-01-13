@@ -12,13 +12,15 @@ use PayPalHttp\Serializer;
  *
  * Serializer for JSON content types.
  */
-class Json implements Serializer {
-
-    public function contentType(): string {
+class Json implements Serializer
+{
+    public function contentType(): string
+    {
         return "/^application\\/json/";
     }
 
-    public function encode(HttpRequest $request) {
+    public function encode(HttpRequest $request)
+    {
         $body = $request->body;
         if (is_string($body)) {
             return $body;
@@ -29,7 +31,8 @@ class Json implements Serializer {
         throw new Exception("Cannot serialize data. Unknown type");
     }
 
-    public function decode($data): mixed {
+    public function decode($data): mixed
+    {
         return json_decode((string) $data);
     }
 }
