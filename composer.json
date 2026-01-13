@@ -1,5 +1,6 @@
 {
-    "name": "paypal/paypalhttp",
+    "name": "snipershady/paypalhttp",
+    "description": "Fork of offical paypalhttp, compliant with php 8.4",
     "type": "library",
     "license": "MIT",
     "authors": [
@@ -14,7 +15,8 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^12.1",
-        "wiremock-php/wiremock-php": "*"
+        "wiremock-php/wiremock-php": "*",
+        "rector/rector": "^2.3"
     },
     "autoload": {
         "psr-4": {
